@@ -1,4 +1,5 @@
 import httpx
+from app.ollama.models import OllamaResponse
 
 class OllamaClient:
     def __init__(self, base_url: str):
@@ -9,7 +10,7 @@ class OllamaClient:
             self, 
             model: str, 
             prompt: str
-            ) -> str:
+            ) -> OllamaResponse:
         payload = {
             "model": model,
             "prompt": prompt,
@@ -25,7 +26,7 @@ class OllamaClient:
 
             data = response.json()
 
-            return data["response"]
+            return OllamaResponse(**data)
 
     async def health(self) -> bool:
         try:

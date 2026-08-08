@@ -9,4 +9,7 @@ class ChatService:
             model: str, 
             prompt: str
         ) -> str:
-        return await self.ollama_client.generate(model=model, prompt=prompt) 
+
+        result = await self.ollama_client.generate(model=model, prompt=prompt)
+
+        return result.response
