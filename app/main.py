@@ -1,5 +1,19 @@
-def main():
-    print("ADA Core starting...")
+from fastapi import FastAPI
 
-if __name__ == "__main__":
-    main()
+app = FastAPI(
+    title="ADA Core",
+    version="0.1.0",
+)
+
+@app.get("/")
+async def root():
+    return {
+        "name": "ADA Core", 
+        "version": "0.1.0"
+    }
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+    }
