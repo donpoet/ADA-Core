@@ -12,7 +12,7 @@ class Message(BaseModel):
     content: str
 
 class Conversation(BaseModel): 
-    id: UUID = Field(default_factory=lambda: str(uuid4()))
+    id: UUID = Field(default_factory=uuid4)
     messages: list[Message] = Field(default_factory=list)
 
     def add_message(self, message: Message):

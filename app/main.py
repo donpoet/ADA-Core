@@ -4,7 +4,8 @@ from app.chat.service import ChatService
 from pydantic import BaseModel
 from app.config import Settings
 from app.conversation.context import ContextBuilder
-from app.conversation.models import Conversation
+from app.conversation.memory_store import InMemoryConversationStore
+from uuid import UUID
 
 app = FastAPI(
     title="ADA Core",
@@ -14,15 +15,20 @@ app = FastAPI(
 app_settings = Settings()
 
 ollama = OllamaClient(base_url=app_settings.ollama_url, timeout=app_settings.ollama_timeout)
-conversation = Conversation()
+conversation_store = InMemoryConversationStore()
 context_builder = ContextBuilder()
-chat_service = ChatService(ollama_client=ollama, context_builder=context_builder)
+chat_service = ChatService(
+    ollama_client=ollama, 
+    context_builder=context_builder,
+    conversation_store=conversation_store)
 
 class ChatRequest(BaseModel):
     prompt: str
+    conversation_id: UUID | None = None
 
 class ChatResponse(BaseModel): 
     response: str
+    conversation_id: UUID
 
 @app.get("/")
 async def root():
@@ -42,10 +48,11 @@ async def health():
 @app.post("/chat")
 async def chat(request: ChatRequest):
     response = await chat_service.chat(
-        converstaion=conversation,
+        conversation_id=request.conversation_id,
         message=request.prompt,
     )
 
     return ChatResponse(
-        response=response,
+        response=response.content,
+        conversation_id= response.conversation_id,
     )
