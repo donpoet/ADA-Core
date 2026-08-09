@@ -2,17 +2,23 @@ from fastapi import FastAPI
 from app.ollama.ollama_client import OllamaClient
 from app.chat.service import ChatService
 from pydantic import BaseModel
+from app.config import Settings
+from app.conversation.context import ContextBuilder
+from app.conversation.models import Conversation
 
 app = FastAPI(
     title="ADA Core",
     version="0.1.0",
 )
 
-ollama = OllamaClient(base_url="http://ada:11434")
-chat_service = ChatService(ollama_client=ollama)
+app_settings = Settings()
+
+ollama = OllamaClient(base_url=app_settings.ollama_url, timeout=app_settings.ollama_timeout)
+conversation = Conversation()
+context_builder = ContextBuilder()
+chat_service = ChatService(ollama_client=ollama, context_builder=context_builder)
 
 class ChatRequest(BaseModel):
-    model: str = "qwen3:4b"
     prompt: str
 
 class ChatResponse(BaseModel): 
@@ -36,8 +42,8 @@ async def health():
 @app.post("/chat")
 async def chat(request: ChatRequest):
     response = await chat_service.chat(
-        model=request.model, 
-        prompt=request.prompt
+        converstaion=conversation,
+        message=request.prompt,
     )
 
     return ChatResponse(
