@@ -1,5 +1,5 @@
 from app.ollama.ollama_client import OllamaClient
-from app.conversation.context import ContextBuilder
+from app.context.context import ContextBuilder
 from app.conversation.models import (
     Conversation,
     MessageRole,

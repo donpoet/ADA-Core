@@ -1,9 +1,25 @@
-from app.conversation.context import ContextBuilder
+from app.context.context import ContextBuilder
 from app.conversation.models import(
     Conversation,
     Message,
     MessageRole
 )
+from pathlib import Path
+from app.prompts.prompt_provider import PromptProvider
+
+def test_add_system_prompt():
+    conversation = Conversation()
+
+    prompt_provider = PromptProvider(Path("tests/prompts"))
+    builder = ContextBuilder(prompt_provider)
+    context = builder.build(conversation=conversation)
+
+    assert context == [
+        {
+            "role": "system",
+            "content": "test"
+        }
+    ]
 
 def test_build_context():
     conversation = Conversation()
@@ -22,10 +38,15 @@ def test_build_context():
         )
     )
 
-    builder = ContextBuilder()
+    prompt_provider = PromptProvider(Path("tests/prompts"))
+    builder = ContextBuilder(prompt_provider)
     context = builder.build(conversation=conversation)
 
     assert context == [
+        {
+            "role": "system",
+            "content": "test"
+        },
         {
             "role": "user",
             "content": "Hallo Ada!"

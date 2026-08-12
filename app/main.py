@@ -3,9 +3,11 @@ from app.ollama.ollama_client import OllamaClient
 from app.chat.service import ChatService
 from pydantic import BaseModel
 from app.config import Settings
-from app.conversation.context import ContextBuilder
+from app.context.context import ContextBuilder
 from app.conversation.memory_store import InMemoryConversationStore
+from app.prompts.prompt_provider import PromptProvider
 from uuid import UUID
+from pathlib import Path
 
 app = FastAPI(
     title="ADA Core",
@@ -16,7 +18,8 @@ app_settings = Settings()
 
 ollama = OllamaClient(base_url=app_settings.ollama_url, timeout=app_settings.ollama_timeout)
 conversation_store = InMemoryConversationStore()
-context_builder = ContextBuilder()
+prompt_provider = PromptProvider(Path("app/prompts"))
+context_builder = ContextBuilder(prompt_provider)
 chat_service = ChatService(
     ollama_client=ollama, 
     context_builder=context_builder,

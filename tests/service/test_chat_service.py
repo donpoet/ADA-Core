@@ -1,4 +1,4 @@
-from app.conversation.context import ContextBuilder
+from app.context.context import ContextBuilder
 from app.conversation.models import (
     Conversation,
     MessageRole,
@@ -9,6 +9,8 @@ from unittest.mock import AsyncMock
 from app.ollama.models import OllamaChatResponse
 from uuid import uuid4
 from app.conversation.memory_store import InMemoryConversationStore
+from app.prompts.prompt_provider import PromptProvider
+from pathlib import Path
 
 @pytest.mark.asyncio
 async def test_chat_add_user_and_assistant_messages():
@@ -25,7 +27,8 @@ async def test_chat_add_user_and_assistant_messages():
         done=True
     )
 
-    context_builder = ContextBuilder()
+    prompt_provider = PromptProvider(Path("tests/prompts"))
+    context_builder = ContextBuilder(prompt_provider)
     conversation_store = InMemoryConversationStore()
 
     service = ChatService(
