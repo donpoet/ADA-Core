@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.ollama.ollama_client import OllamaClient
 from app.chat.service import ChatService
 from pydantic import BaseModel
@@ -33,8 +35,14 @@ class ChatResponse(BaseModel):
     response: str
     conversation_id: UUID
 
+app.mount("/static", StaticFiles(directory="web"), name="static")
+
 @app.get("/")
-async def root():
+async def frontend():
+    return FileResponse("web/index.html")
+
+@app.get("/info")
+async def info():
     return {
         "name": "ADA Core", 
         "version": "0.1.0"

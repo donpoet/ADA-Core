@@ -1,0 +1,262 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    background: #111;
+    color: fff;
+
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    height: 60px;
+    padding: 0px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-bottom: 1px solid #333;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 20px
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-dot.online {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #3fb950;
+}
+
+.status-dot.degraded {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: orange;
+}
+
+.status-dot.offline {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #f85149;
+}
+
+.chat {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.input-area {
+    display: flex;
+    gap: 10px;
+    
+    padding: 14px 20px;
+    border-top: 1px solid #333;
+}
+
+.input-area input{
+    flex: 1;
+    padding: 12px 14px;
+
+    background: #1c1c1c;
+    color: #fff;
+
+    border: 1px solid #333;
+    border-radius: 10px;
+
+    font-size: 15px;
+    
+    outline: none;
+    box-sizing: border-box;
+}
+
+.input-area input::placeholder {
+    color: #777;
+}
+
+.input-area input:focus {
+    border-color: #555;
+}
+
+.input-area button{
+    padding: 0px 20px;
+
+    background: #2a2a2a;
+    color: #fff;
+
+    border: 1px solid #444;
+    border-radius: 10px;
+
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition: background 0.15s ease;
+}
+
+.input-area button:hover {
+    background: #333;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+
+    border-radius: 12px;
+
+    line-height: 1.5;
+}
+
+.ada-message {
+    align-self: flex-start;
+    background: #1e1e1e;
+}
+
+.user-message {
+    align-self: flex-end;
+    background: #2a2a2a;
+}
+
+.ada-message pre {
+    margin: 12px 0;
+    padding: 0;
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.ada-message pre code {
+    display: block;
+    padding: 14px;
+
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.9rem;
+}
+
+.ada-message :not(pre) > code {
+    padding: 3px 7px;
+
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 5px;
+
+    font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+    font-size: 0.9em;
+}
+
+.thinking {
+    display: flex;
+    gap: 4px;
+}
+
+.thinking span {
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+    background: #888;
+
+    animation: thinking 1.4s infinite ease-in-out; 
+}
+
+.thinking span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.thinking span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes thinking {
+    0%, 60%, 100% {
+        opacity: 0.3;
+        transform: translateY(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translateY(-3px);
+    }
+}
+
+/* Highlights.js */
+
+.ada-message pre code.hljs .hljs-keyword {
+    color: #ff7b72;
+}
+
+
+.ada-message pre code.hljs .hljs-string {
+    color: #a5d6ff;
+}
+
+
+.ada-message pre code.hljs .hljs-comment {
+    color: #8b949e;
+}
+
+.ada-message pre code.hljs .hljs-title,
+.ada-message pre code.hljs .hljs-title.function_ {
+    color: #d2a8ff;
+}
+
+.ada-message pre code.hljs .hljs-number {
+    color: #79c0ff;
+}
+
+.ada-message pre code.hljs .hljs-built_in {
+    color: #ffa657;
+}
+
+.ada-message pre code.hljs .hljs-variable {
+    color: #ffa657;
+}
+
+.ada-message pre code.hljs .hljs-function {
+    color: #d2a8ff;
+}
+
+.ada-message pre code.hljs .hljs-params {
+    color: #f0f0f0;
+}
+
+.ada-message pre code.hljs .hljs-attr {
+    color: #79c0ff;
+}
+
+.ada-message pre code.hljs .hljs-literal {
+    color: #79c0ff;
+}
+
+.ada-message pre code.hljs .hljs-meta {
+    color: #8b949e;
+}
+
+.ada-message pre code.hljs .hljs-operator {
+    color: #ff7b72;
+}

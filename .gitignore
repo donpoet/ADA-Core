@@ -1,5 +1,9 @@
 .vscode
 .env
+.venv
+.pytest_cache
 *.code-workspace
-/__pycache__/
+__pycache__
 *.pyc
+*.db
+__pycache__/
