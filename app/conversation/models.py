@@ -8,6 +8,7 @@ class MessageRole(str, Enum):
     ASSISTANT = "assistant"
 
 class Message(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
     role: MessageRole
     content: str
 

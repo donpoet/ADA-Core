@@ -8,3 +8,6 @@ __pycache__
 *.db
 __pycache__/
 *.egg-info
+/data
+*/__pycache__/*
+.pytest-temp/

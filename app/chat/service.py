@@ -5,7 +5,7 @@ from app.conversation.models import (
     MessageRole,
     Message,
 )
-from app.conversation.memory_store import InMemoryConversationStore
+from app.conversation.memory_store import ConversationStore
 from uuid import UUID
 from app.chat.models import ChatServiceResponse
 
@@ -14,7 +14,7 @@ class ChatService:
             self, 
             ollama_client: OllamaClient,
             context_builder: ContextBuilder,
-            conversation_store: InMemoryConversationStore ):
+            conversation_store: ConversationStore ):
         self.ollama_client = ollama_client
         self.context_builder = context_builder
         self.conversation_store = conversation_store

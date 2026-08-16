@@ -6,10 +6,11 @@ from app.chat.service import ChatService
 from pydantic import BaseModel
 from app.config import Settings
 from app.context.context import ContextBuilder
-from app.conversation.memory_store import InMemoryConversationStore
+from app.conversation.sqlite_store import SQLiteConversationStore
 from app.prompts.prompt_provider import PromptProvider
 from uuid import UUID
 from pathlib import Path
+from sqlalchemy import create_engine
 
 app = FastAPI(
     title="ADA Core",
@@ -19,7 +20,8 @@ app = FastAPI(
 app_settings = Settings()
 
 ollama = OllamaClient(base_url=app_settings.ollama_url, timeout=app_settings.ollama_timeout)
-conversation_store = InMemoryConversationStore()
+db_engine = create_engine(app_settings.database_url)
+conversation_store = SQLiteConversationStore(db_engine)
 prompt_provider = PromptProvider(Path("app/prompts"))
 context_builder = ContextBuilder(prompt_provider)
 chat_service = ChatService(
@@ -62,6 +64,8 @@ async def chat(request: ChatRequest):
         conversation_id=request.conversation_id,
         message=request.prompt,
     )
+
+    print(response.conversation_id)
 
     return ChatResponse(
         response=response.content,
