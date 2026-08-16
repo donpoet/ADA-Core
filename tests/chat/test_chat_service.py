@@ -12,11 +12,18 @@ from app.conversation.memory_store import InMemoryConversationStore
 from app.conversation.sqlite_store import SQLiteConversationStore
 from app.prompts.prompt_provider import PromptProvider
 from pathlib import Path
+from datetime import (
+    datetime,
+    UTC
+)
 
 @pytest.mark.asyncio
 async def test_chat_add_user_and_assistant_messages():
-    conversation = Conversation()
-    conversation.id = uuid4()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
     ollama_client = AsyncMock()
 
     ollama_client.chat.return_value = OllamaChatResponse(
@@ -58,8 +65,11 @@ async def test_chat_add_user_and_assistant_messages():
 
 @pytest.mark.asyncio
 async def test_conversation_keeps_context():
-    conversation = Conversation()
-    conversation.id = uuid4()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
     ollama_client = AsyncMock()
         
     ollama_client.chat.return_value = OllamaChatResponse(
@@ -110,8 +120,11 @@ async def test_conversation_keeps_context():
 
 @pytest.mark.asyncio
 async def test_conversation_keeps_context_with_sqlite_store(db_engine):
-    conversation = Conversation()
-    conversation.id = uuid4()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
     ollama_client = AsyncMock()
         
     ollama_client.chat.return_value = OllamaChatResponse(

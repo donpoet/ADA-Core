@@ -17,4 +17,12 @@ class InMemoryConversationStore(ConversationStore):
         return self._conversations.get(conversation_id)
 
     def save(self, conversation: Conversation) -> None:
-        self._conversations[conversation.id] = conversation    
+        self._conversations[conversation.id] = conversation 
+
+    def list_conversations(self) -> list[Conversation]:
+        conversations = []
+        for key in self._conversations.keys():
+            conversations.append(
+                self._conversations.get(key)
+            )
+        return conversations

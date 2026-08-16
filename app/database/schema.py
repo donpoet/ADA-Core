@@ -28,15 +28,17 @@ class ConversationModel(Base):
         primary_key=True,
     )
 
+    title: Mapped[str | None] = mapped_column(String)
+
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
     )
 
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.now(UTC),
-        onupdate=datetime.now(UTC),
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     messages: Mapped[list["MessageModel"]] = relationship(

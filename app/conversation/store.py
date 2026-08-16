@@ -15,3 +15,7 @@ class ConversationStore(ABC):
     @abstractmethod
     def save(self, conversation:Conversation) -> None:
         pass
+
+    @abstractmethod
+    def list_conversations(self) -> list[Conversation]:
+        pass

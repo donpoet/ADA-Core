@@ -13,6 +13,10 @@ from app.database.schema import (
     ConversationModel,
     MessageModel
 )
+from datetime import (
+    datetime,
+    UTC
+)
 
 class SQLiteConversationStore(ConversationStore):
 
@@ -21,7 +25,6 @@ class SQLiteConversationStore(ConversationStore):
 
     def create(self) -> Conversation:
         conversation = Conversation(
-            id=uuid4(),
             messages=[],
             )
         
@@ -58,6 +61,9 @@ class SQLiteConversationStore(ConversationStore):
 
             return Conversation(
                 id=UUID(result.id),
+                title=result.title,
+                created_at=ensure_utc(result.created_at),
+                updated_at=ensure_utc(result.updated_at),
                 messages=messages,
             )
 
@@ -71,6 +77,9 @@ class SQLiteConversationStore(ConversationStore):
             if conversation_model is None:
                 conversation_model = ConversationModel(
                     id=str(conversation.id),
+                    title=conversation.title,
+                    created_at=ensure_utc(conversation.created_at),
+                    updated_at=ensure_utc(conversation.updated_at)
                 )
                 session.add(conversation_model)
 
@@ -84,3 +93,35 @@ class SQLiteConversationStore(ConversationStore):
             ]
 
             session.commit()
+
+    def list_conversations(self) -> list[Conversation]:
+        conversations = []
+        with Session(self._engine) as session:
+            conversation_models = session.query(ConversationModel).all()
+        
+            for conversation_model in conversation_models:
+                messages = [
+                    Message(
+                        id=UUID(message.id),
+                        role=message.role,
+                        content=message.content
+                    )
+                    for message in conversation_model.messages 
+                ]
+                conversations.append(
+                    Conversation(
+                        id=UUID(conversation_model.id),
+                        title=conversation_model.title,
+                        created_at=ensure_utc(conversation_model.created_at),
+                        updated_at=ensure_utc(conversation_model.updated_at),
+                        messages=messages
+                    )
+                )
+        return conversations
+
+
+def ensure_utc(value: datetime) -> datetime:
+    if(value.tzinfo is None):
+        return value.replace(tzinfo=UTC)
+    
+    return value.astimezone(UTC)

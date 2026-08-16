@@ -3,10 +3,19 @@ from app.conversation.models import (
     Message,
     MessageRole,
 )
+from datetime import (
+    datetime,
+    UTC
+)
+from uuid import uuid4
 
 
 def test_conversation():
-    conversation = Conversation()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
 
     conversation.messages.append(
         Message(

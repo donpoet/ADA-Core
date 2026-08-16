@@ -6,9 +6,18 @@ from app.conversation.models import(
 )
 from pathlib import Path
 from app.prompts.prompt_provider import PromptProvider
+from uuid import uuid4
+from datetime import (
+    datetime,
+    UTC
+)
 
 def test_add_system_prompt():
-    conversation = Conversation()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
 
     prompt_provider = PromptProvider(Path("tests/prompts"))
     builder = ContextBuilder(prompt_provider)
@@ -22,7 +31,11 @@ def test_add_system_prompt():
     ]
 
 def test_build_context():
-    conversation = Conversation()
+    conversation = Conversation(
+        id=uuid4(),
+        created_at=datetime.now(UTC),
+        updated_at=datetime.now(UTC),
+    )
 
     conversation.add_message(
         Message(
