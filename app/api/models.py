@@ -18,3 +18,15 @@ class ConversationListItem(BaseModel):
 
 class ConversationsListResponse(BaseModel):
     conversations: list[ConversationListItem]  
+
+class ConversationMessageItem(BaseModel):
+    id: UUID
+    role: str
+    content: str
+
+class ConversationResponse(BaseModel):
+    id: UUID
+    title: str | None = None
+    created_at: datetime
+    updated_at: datetime
+    messages: list[ConversationMessageItem]

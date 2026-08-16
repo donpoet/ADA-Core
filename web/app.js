@@ -128,7 +128,7 @@ function addMessage(message, origin) {
         // Set the content between <div></div> to the message text. Treat it innnerHTML and sanitize with DOMPurify Library to escape html code.
         messageElement.innerHTML= DOMPurify.sanitize(html);
     } else {
-        // Set the content between <div></div> to the message text. Treat it as text to escape html code
+    // Set the content between <div></div> to the message text. Treat it as text to escape html code
     messageElement.textContent=message;
 
     }
@@ -137,6 +137,97 @@ function addMessage(message, origin) {
     chat.appendChild(messageElement);
     // Scroll the chat box all the way down. Necessary for many messages because of overflow-y auto
     chat.scrollTop = chat.scrollHeight;
+}
+
+async function loadConversations() {
+    const response = await fetch("/conversations");
+
+    if (!response.ok) {
+        throw new Error("Failed to load conversations");
+        console.log(error);
+    }
+
+    const data = await response.json();
+
+    console.log(data);
+
+    renderConversations(data.conversations)
+}
+
+function renderConversations(conversations) {
+    const list = document.getElementById("conversation-list");
+
+    list.innerHTML = "";
+
+    for(const conversation of conversations) {
+        const item = document.createElement("div");
+
+        item.className = "conversation-item";
+        item.dataset.id = conversation.id;
+        item.textContent = conversation.title ?? "New Conversation";
+
+        item.addEventListener("click", () => {
+            loadConversation(conversation.id);
+        })
+
+        list.appendChild(item)
+    }
+}
+
+async function loadConversation(conversation_id) {
+    const response = await fetch(`/conversations/${conversation_id}`);
+
+    if (!response.ok) {
+        console.error(
+            "Failed to load conversation: ",
+            response.status
+        );
+        return;
+    }
+
+    const conversation = await response.json();
+
+    console.log("Loaded Conversation: ", conversation);
+
+    setActiveConversation(conversation_id)
+    renderConversation(conversation);
+    
+}
+
+function renderConversation(conversation) {
+    const chat = document.querySelector(".chat");
+
+    chat.innerHTML = "";
+
+    for (const message of conversation.messages) {
+        addMessage(message.content, message.role === "assistant" ? "ada-message" : "user-message");
+    }
+}
+
+function setActiveConversation(conversation_id) {
+    document.querySelectorAll(".conversation-item").forEach(item => {
+        item.classList.toggle(
+            "active",
+            item.dataset.id === conversation_id
+        )
+    })
+}
+
+document
+    .getElementById("new-chat-button")
+    .addEventListener("click", () => {
+        startNewChat();
+    })
+
+function startNewChat() {
+    chat.innerHTML = "";
+    document
+        .querySelectorAll(".conversation-item")
+        .forEach( item => {
+            item.classList.remove("active");
+        });
+    
+    conversation_id = null;
 }
 
 async function checkHealth() {
@@ -162,3 +253,4 @@ async function checkHealth() {
 }
 
 checkHealth();
+loadConversations();

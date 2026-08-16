@@ -7,6 +7,8 @@ from app.api.models import(
     ChatResponse,
     ConversationsListResponse,
     ConversationListItem,
+    ConversationMessageItem,
+    ConversationResponse
 )
 from app.ollama.ollama_client import OllamaClient
 from app.chat.service import ChatService
@@ -17,6 +19,7 @@ from app.dependencies import(
     get_memory_service, 
     get_ollama
 )
+from uuid import UUID
 
 router = APIRouter()
 
@@ -63,5 +66,24 @@ def list_conversations(memory_service: MemoryService = Depends(get_memory_servic
                 updated_at=conversation.updated_at,
             ) 
             for conversation in result
+        ]
+    )
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationResponse)
+def list_conversations(conversation_id:UUID, memory_service: MemoryService = Depends(get_memory_service)):
+    result = memory_service.get_conversation(conversation_id)
+
+    return ConversationResponse(
+        id=result.id,
+        title=result.title,
+        created_at=result.created_at,
+        updated_at=result.updated_at,
+        messages=[
+            ConversationMessageItem(
+                id=message.id,
+                role=message.role,
+                content=message.content
+            )
+            for message in result.messages
         ]
     )

@@ -11,27 +11,44 @@
     <script src="static/app.js" defer></script>
 </head>
 <body>
-    <main class="app">
-
-        <header class="header">
-            <h1>Ada</h1>
-            <div class="status">
-                <span class="status-dot"></span>
+    <div class="layout">
+        <aside class="conversation-sidebar">
+            <div class="sidebar-header">
+                <h2>Konversationen</h2>
             </div>
-        </header>
 
-        <section class="chat">
-            <!--Chat-->
-        </section>
+            <button id="new-chat-button" type="button">
+                + Neuer Chat
+            </button>
 
-        <form class="input-area">
-            <input
-                type="text"
-                placeholder="Nachricht an Ada"
-                autocomplete="off"
-            />    
+            <div id="conversation-list" class="conversation-list">
+                <!-- Automatisch von JS befüllt -->
+            </div>
+        </aside>
 
-            <button type="submit">Senden</button>
-        </form>
-    </main>
+
+        <main class="app">
+
+            <header class="header">
+                <h1>Ada</h1>
+                <div class="status">
+                    <span class="status-dot"></span>
+                </div>
+            </header>
+
+            <section class="chat">
+                <!--Chat-->
+            </section>
+
+            <form class="input-area">
+                <input
+                    type="text"
+                    placeholder="Nachricht an Ada"
+                    autocomplete="off"
+                />    
+
+                <button type="submit">Senden</button>
+            </form>
+        </main>
+    </div>
 </body>
