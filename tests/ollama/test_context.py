@@ -1,4 +1,4 @@
-from app.context.context import ContextBuilder
+from app.ollama.context_builder import OllamaContextBuilder
 from app.conversation.models import(
     Conversation,
     Message,
@@ -11,6 +11,7 @@ from datetime import (
     datetime,
     UTC
 )
+from app.ollama.models import OllamaContextSource
 
 def test_add_system_prompt():
     conversation = Conversation(
@@ -20,10 +21,13 @@ def test_add_system_prompt():
     )
 
     prompt_provider = PromptProvider(Path("tests/prompts"))
-    builder = ContextBuilder(prompt_provider)
-    context = builder.build(conversation=conversation)
+    builder = OllamaContextBuilder(prompt_provider)
 
-    assert context == [
+    context = builder.build(OllamaContextSource(
+        conversation=conversation
+    ))
+
+    assert context.messages == [
         {
             "role": "system",
             "content": "test"
@@ -52,10 +56,12 @@ def test_build_context():
     )
 
     prompt_provider = PromptProvider(Path("tests/prompts"))
-    builder = ContextBuilder(prompt_provider)
-    context = builder.build(conversation=conversation)
+    builder = OllamaContextBuilder(prompt_provider)
+    context = builder.build(OllamaContextSource(
+        conversation=conversation
+    ))
 
-    assert context == [
+    assert context.messages == [
         {
             "role": "system",
             "content": "test"

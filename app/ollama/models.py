@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 
+from app.context.models import ContextSource, ContextOutput
+from app.conversation.models import Conversation
+from app.llm_models.models import ModelOutput
+
 class OllamaMessage(BaseModel):
     role: str
     content: str
@@ -25,3 +29,12 @@ class OllamaChatResponse(BaseModel):
     prompt_eval_count: int | None = None
     eval_count: int | None = None
     eval_duration: int | None = None
+
+class OllamaContextSource(ContextSource, BaseModel):
+    conversation: Conversation
+
+class OllamaContextOutput(ContextOutput, BaseModel):
+    messages: list[dict[str, str]]
+
+class OllamaModelOutput(ModelOutput, BaseModel):
+    content: str

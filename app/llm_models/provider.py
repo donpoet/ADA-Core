@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
-S = TypeVar("S")
+I = TypeVar("I")
 O = TypeVar("O")
 
-class ContextBuilder(ABC, Generic[S,O]):
-
+class ModelProvider(ABC, Generic[I, O]):
+    
     @abstractmethod
-    def build(self, source: S) -> O:
+    def chat(self, input: I) -> O:
         pass

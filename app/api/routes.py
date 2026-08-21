@@ -17,7 +17,7 @@ from fastapi.responses import FileResponse
 from app.dependencies import(
     get_chat_service,
     get_memory_service, 
-    get_ollama
+    get_ollama_client,
 )
 from uuid import UUID
 
@@ -35,8 +35,8 @@ async def info():
     }
 
 @router.get("/health")
-async def health(ollama: OllamaClient = Depends(get_ollama)):
-    ollama_healthy = await ollama.health()
+async def health(ollama_client: OllamaClient = Depends(get_ollama_client)):
+    ollama_healthy = await ollama_client.health()
     return {
         "status": "ok" if ollama_healthy else "degraded",
         "ollama_healthy": "ok" if ollama_healthy else "unavailable"

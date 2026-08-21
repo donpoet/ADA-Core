@@ -6,7 +6,9 @@ from app.conversation.models import (
 from app.chat.service import ChatService
 import pytest
 from unittest.mock import AsyncMock
-from app.ollama.models import OllamaChatResponse
+from app.ollama.models import OllamaModelOutput
+from app.ollama.context_builder import OllamaContextBuilder
+from app.ollama.model_provider import OllamaModelProvider
 from uuid import uuid4
 from app.conversation.memory_store import InMemoryConversationStore
 from app.conversation.sqlite_store import SQLiteConversationStore
@@ -24,23 +26,20 @@ async def test_chat_add_user_and_assistant_messages():
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
     )
-    ollama_client = AsyncMock()
-
-    ollama_client.chat.return_value = OllamaChatResponse(
-        model="qwen3:4b",
-        message={
-            "role": "assistant",
-            "content": "Hallo!",
-        },
-        done=True
-    )
 
     prompt_provider = PromptProvider(Path("tests/prompts"))
-    context_builder = ContextBuilder(prompt_provider)
+    context_builder = AsyncMock()
     conversation_store = InMemoryConversationStore()
+    model_provider = AsyncMock()
+    chat_context_source_factory = AsyncMock()
+
+    model_provider.chat.return_value = OllamaModelOutput(
+       content="Hallo!"
+    )
 
     service = ChatService(
-        ollama_client=ollama_client,
+        context_source_factory=chat_context_source_factory,
+        model_provider=model_provider,
         context_builder=context_builder,
         conversation_store=conversation_store,
     )
@@ -61,7 +60,7 @@ async def test_chat_add_user_and_assistant_messages():
     assert conversation.messages[1].role == MessageRole.ASSISTANT
     assert conversation.messages[1].content == "Hallo!"
 
-    ollama_client.chat.assert_awaited_once()
+    model_provider.chat.assert_awaited_once()
 
 @pytest.mark.asyncio
 async def test_conversation_keeps_context():
@@ -70,23 +69,20 @@ async def test_conversation_keeps_context():
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
     )
-    ollama_client = AsyncMock()
-        
-    ollama_client.chat.return_value = OllamaChatResponse(
-        model="qwen3:4b",
-        message={
-            "role": "assistant",
-            "content": "Hallo!",
-        },
-        done=True
+    
+    prompt_provider = PromptProvider(Path("tests/prompts"))
+    context_builder = AsyncMock()
+    conversation_store = InMemoryConversationStore()
+    model_provider = AsyncMock()
+    chat_context_source_factory = AsyncMock()
+
+    model_provider.chat.return_value = OllamaModelOutput(
+       content="Hallo!"
     )
 
-    prompt_provider = PromptProvider(Path("tests/prompts"))    
-    context_builder = ContextBuilder(prompt_provider)
-    conversation_store = InMemoryConversationStore()
-
     service = ChatService(
-        ollama_client=ollama_client,
+        context_source_factory=chat_context_source_factory,
+        model_provider=model_provider,
         context_builder=context_builder,
         conversation_store=conversation_store,
     )
@@ -125,23 +121,20 @@ async def test_conversation_keeps_context_with_sqlite_store(db_engine):
         created_at=datetime.now(UTC),
         updated_at=datetime.now(UTC),
     )
-    ollama_client = AsyncMock()
-        
-    ollama_client.chat.return_value = OllamaChatResponse(
-        model="qwen3:4b",
-        message={
-            "role": "assistant",
-            "content": "Hallo!",
-        },
-        done=True
-    )
 
     prompt_provider = PromptProvider(Path("tests/prompts"))
-    context_builder = ContextBuilder(prompt_provider)
-    conversation_store = SQLiteConversationStore(db_engine)
+    context_builder = AsyncMock()
+    conversation_store = InMemoryConversationStore()
+    model_provider = AsyncMock()
+    chat_context_source_factory = AsyncMock()
+
+    model_provider.chat.return_value = OllamaModelOutput(
+       content="Hallo!"
+    )
 
     service = ChatService(
-        ollama_client=ollama_client,
+        context_source_factory=chat_context_source_factory,
+        model_provider=model_provider,
         context_builder=context_builder,
         conversation_store=conversation_store,
     )
