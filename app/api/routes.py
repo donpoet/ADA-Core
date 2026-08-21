@@ -31,7 +31,7 @@ async def frontend():
 async def info():
     return {
         "name": "ADA Core", 
-        "version": "0.2.0"
+        "version": "0.3.0"
     }
 
 @router.get("/health")
