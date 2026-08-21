@@ -12,7 +12,7 @@ from datetime import (
     UTC
 )
 
-def test_list_conversations_api():
+def test_get_specific_conversation():
     store = InMemoryConversationStore()
     memory_service = MemoryService(store)
 
