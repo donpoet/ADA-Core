@@ -1,10 +1,16 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 from uuid import UUID, uuid4
 from datetime import datetime, UTC
 from typing import Generic, TypeVar
 from abc import ABC, abstractmethod
+from app.application.artifacts.stores.artifact_store import ArtifactStore
 
-from app.tasks.enums import TaskType, TaskStatus, TaskExecutionStatus, TaskResultStatus
+from .enums import (
+    TaskType,
+    TaskStatus, 
+    TaskExecutionStatus, 
+    TaskResultStatus
+)
 
 class Task(BaseModel):
     id: UUID = Field(default_factory=uuid4)
@@ -49,8 +55,18 @@ class TaskExecution(ABC, BaseModel, Generic[I]):
     task_id: UUID
     status: TaskExecutionStatus = TaskExecutionStatus.PENDING
     context: I
+    _artifact_store: ArtifactStore = PrivateAttr()
     started_at: datetime | None = None
     finished_at: datetime | None = None
+
+    def __init__(
+        self,
+        *,
+        artifact_store: ArtifactStore,
+        **data,):
+        super().__init__(**data)
+        self._artifact_store = artifact_store
+
 
     @abstractmethod
     async def execute(self) -> TaskResult:

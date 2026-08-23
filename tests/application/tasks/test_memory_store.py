@@ -6,6 +6,7 @@ from datetime import (
     datetime,
     UTC
 )
+from unittest.mock import AsyncMock
 
 class TestTaskExecution(TaskExecution):
     def execute(self):
@@ -82,10 +83,12 @@ def test_list_tasks():
 
 def test_create_and_get_task_execution():
     store = InMemoryTaskStore()
+    artifact_store = AsyncMock()
 
     task_execution = TestTaskExecution(
         task_id=uuid4(),
         context=object(),
+        artifact_store=artifact_store
     )
 
     store.save_task_execution(task_execution)
@@ -96,10 +99,12 @@ def test_create_and_get_task_execution():
 
 def test_save_task_execution():
     store = InMemoryTaskStore()
+    artifact_store = AsyncMock()
 
     task_execution = TestTaskExecution(
         task_id=uuid4(),
         context=object(),
+        artifact_store=artifact_store
     )
     
     print(task_execution.id)
@@ -130,17 +135,22 @@ def test_list_task_executions():
     task_id1 = uuid4()
     task_id2 = uuid4()
 
+    artifact_store = AsyncMock()
+
     task_execution1 = TestTaskExecution(
         task_id=task_id1,
         context=object(),
+        artifact_store=artifact_store
     )
     task_execution2 = TestTaskExecution(
         task_id=task_id2,
         context=object(),
+        artifact_store=artifact_store
     )
     task_execution3 = TestTaskExecution(
         task_id=task_id1,
         context=object(),
+        artifact_store=artifact_store
     )
 
     store = InMemoryTaskStore()

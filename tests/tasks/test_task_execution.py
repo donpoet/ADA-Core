@@ -4,11 +4,15 @@ from uuid import uuid4
 from app.tasks.models import Task, TaskExecution, InvalidTaskExecutionStateError
 from app.tasks.enums import TaskType, TaskExecutionStatus, TaskResultStatus
 
+from unittest.mock import AsyncMock
+
 class TestTaskExecution(TaskExecution[object]):
     def execute(self):
         pass
 
 def test_task_execution_creation():
+    artifact_store = AsyncMock()
+    
     task = Task(
         conversation_id=uuid4(),
         type=TaskType.WEAK_LLM,
@@ -17,16 +21,19 @@ def test_task_execution_creation():
     task_execution = TestTaskExecution(
         task_id=task.id,
         context=[],
+        artifact_store=artifact_store
     )
 
     assert task_execution.id is not None
     assert task_execution.context == []
     assert task_execution.task_id == task.id
     assert task_execution.status == TaskExecutionStatus.PENDING
-    assert task_execution.started_at is not None
+    assert task_execution.started_at is None
     assert task_execution.finished_at is None
 
 def test_task_execution_lifecycle():
+    artifact_store = AsyncMock()
+
     task = Task(
         conversation_id=uuid4(),
         type=TaskType.WEAK_LLM,
@@ -35,6 +42,7 @@ def test_task_execution_lifecycle():
     task_execution = TestTaskExecution(
         task_id=task.id,
         context=[],
+        artifact_store=artifact_store
     )
 
     task_execution.start()
@@ -53,6 +61,7 @@ def test_task_execution_lifecycle():
     task_execution = TestTaskExecution(
         task_id=task.id,
         context=[],
+        artifact_store=artifact_store
     )
 
     task_execution.start()
@@ -78,6 +87,7 @@ def test_task_execution_lifecycle():
     task_execution = TestTaskExecution(
         task_id=task.id,
         context=[],
+        artifact_store=artifact_store
     )
 
     task_execution.cancel()
@@ -102,6 +112,7 @@ def test_task_execution_lifecycle():
     task_execution = TestTaskExecution(
         task_id=task.id,
         context=[],
+        artifact_store=artifact_store
     )
 
     task_execution.start()
