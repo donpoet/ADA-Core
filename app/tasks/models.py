@@ -49,11 +49,11 @@ class TaskExecution(ABC, BaseModel, Generic[I]):
     task_id: UUID
     status: TaskExecutionStatus = TaskExecutionStatus.PENDING
     context: I
-    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    started_at: datetime | None = None
     finished_at: datetime | None = None
 
     @abstractmethod
-    def execute(self) -> TaskResult:
+    async def execute(self) -> TaskResult:
         pass
 
     def start(self) -> None:
