@@ -1,5 +1,6 @@
 from .store import TaskResultStore
 from app.tasks.models import TaskResult
+from app.tasks.enums import TaskResultStatus
 from uuid import uuid4, UUID
 
 class InMemoryTaskResultStore(TaskResultStore):
