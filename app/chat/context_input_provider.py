@@ -1,7 +1,7 @@
 from app.context.context_input_provider import ContextInputProvider
 from app.conversation.models import Conversation
 from app.tasks.models import Task
-from app.conversation.store import ConversationStore
+from app.application.conversations.stores.store import ConversationStore
 
 class ChatContextInputProvider(ContextInputProvider[Conversation]):
     def __init__(self, conversation_store: ConversationStore):

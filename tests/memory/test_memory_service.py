@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock
 
-from app.conversation.store import ConversationStore
+from app.application.conversations.stores.store import ConversationStore
 from app.memory.service import MemoryService
 from app.conversation.models import Conversation
 from datetime import (

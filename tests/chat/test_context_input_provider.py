@@ -1,6 +1,6 @@
 from app.tasks.models import Task
 from app.tasks.enums import TaskType
-from app.conversation.memory_store import InMemoryConversationStore
+from app.application.conversations.stores.memory_store import InMemoryConversationStore
 from app.chat.context_input_provider import ChatContextInputProvider
 
 def test_get():

@@ -1,4 +1,4 @@
-from app.conversation.memory_store import InMemoryConversationStore
+from app.application.conversations.stores.memory_store import InMemoryConversationStore
 from app.conversation.models import (
     Conversation,
     Message,

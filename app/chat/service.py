@@ -5,7 +5,7 @@ from app.conversation.models import (
     MessageRole,
     Message,
 )
-from app.conversation.memory_store import ConversationStore
+from app.application.conversations.stores.memory_store import ConversationStore
 from uuid import UUID
 from app.chat.models import ChatServiceResponse
 from app.llm_models.provider import ModelProvider

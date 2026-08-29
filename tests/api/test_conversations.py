@@ -5,7 +5,7 @@ from app.dependencies import(
     get_memory_service
 )
 from app.memory.service import MemoryService
-from app.conversation.sqlite_store import SQLiteConversationStore
+from app.application.conversations.stores.sqlite_store import SQLiteConversationStore
 from app.conversation.models import Conversation
 from datetime import (
     datetime,

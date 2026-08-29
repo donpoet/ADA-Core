@@ -1,4 +1,4 @@
-from app.conversation.store import ConversationStore
+from app.application.conversations.stores.store import ConversationStore
 from app.conversation.models import Conversation
 from uuid import UUID
 

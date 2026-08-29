@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
-from app.conversation.sqlite_store import SQLiteConversationStore
+from app.application.conversations.stores.sqlite_store import SQLiteConversationStore
 from app.database.schema import (
     ConversationModel,
     MessageModel

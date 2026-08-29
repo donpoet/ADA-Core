@@ -1,6 +1,6 @@
 import pytest
 
-from app.conversation.memory_store import InMemoryConversationStore
+from app.application.conversations.stores.memory_store import InMemoryConversationStore
 from app.application.tasks.stores.memory_store import InMemoryTaskStore
 from app.application.artifacts.stores.artifact_memory_store import InMemoryArtifactStore
 from app.llm_models.provider import ModelProvider

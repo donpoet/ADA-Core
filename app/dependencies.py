@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from app.ollama.ollama_client import OllamaClient
 from app.chat.service import ChatService
 from app.config import Settings
-from app.conversation.sqlite_store import SQLiteConversationStore
+from app.application.conversations.stores.sqlite_store import SQLiteConversationStore
 from app.prompts.prompt_provider import PromptProvider
 from app.memory.service import MemoryService
 from app.ollama.context_builder import OllamaContextBuilder

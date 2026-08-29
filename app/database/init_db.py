@@ -2,7 +2,15 @@ from sqlalchemy import create_engine
 
 from app.config import Settings
 from app.database.database import Base
-from app.database.schema import ConversationModel, MessageModel
+from app.database.schema import (
+    ConversationModel, 
+    MessageModel,
+    TaskModel,
+    TaskExecutionModel,
+    TaskResultModel,
+    TaskMessageModel,
+    ArtifactModel,
+)
 
 def main() -> None:
     settings = Settings()

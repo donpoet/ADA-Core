@@ -1,7 +1,7 @@
 from uuid import uuid4, UUID
 
 from app.conversation.models import Conversation
-from app.conversation.store import ConversationStore
+from .store import ConversationStore
 
 class InMemoryConversationStore(ConversationStore):
 

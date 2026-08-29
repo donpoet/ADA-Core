@@ -5,7 +5,7 @@ from app.dependencies import(
     get_memory_service
 )
 from app.memory.service import MemoryService
-from app.conversation.memory_store import InMemoryConversationStore
+from app.application.conversations.stores.memory_store import InMemoryConversationStore
 from app.conversation.models import Conversation, Message, MessageRole
 from datetime import (
     datetime,

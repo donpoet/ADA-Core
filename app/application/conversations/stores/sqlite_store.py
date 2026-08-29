@@ -4,7 +4,7 @@ from uuid import (
 )
 from sqlalchemy.orm import Session
 
-from app.conversation.store import ConversationStore
+from .store import ConversationStore
 from app.conversation.models import (
     Conversation,
     Message
@@ -13,10 +13,8 @@ from app.database.schema import (
     ConversationModel,
     MessageModel
 )
-from datetime import (
-    datetime,
-    UTC
-)
+
+from app.database.utils import ensure_utc
 
 class SQLiteConversationStore(ConversationStore):
 
@@ -118,10 +116,3 @@ class SQLiteConversationStore(ConversationStore):
                     )
                 )
         return conversations
-
-
-def ensure_utc(value: datetime) -> datetime:
-    if(value.tzinfo is None):
-        return value.replace(tzinfo=UTC)
-    
-    return value.astimezone(UTC)

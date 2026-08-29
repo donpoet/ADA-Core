@@ -1,12 +1,8 @@
-from enum import Enum
 from pydantic import BaseModel, Field
 from uuid import uuid4, UUID
 from datetime import datetime, UTC
 
-class MessageRole(str, Enum):
-    SYSTEM = "system"
-    USER = "user"
-    ASSISTANT = "assistant"
+from .enums import MessageRole
 
 class Message(BaseModel):
     id: UUID = Field(default_factory=uuid4)

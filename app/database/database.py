@@ -6,10 +6,14 @@ from sqlalchemy.orm import (
     sessionmaker
 )
 
+from app.config import Settings
+
+settings = Settings()
+
 DATABASE_PATH = Path("data/adacore.db")
 DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
 
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+DATABASE_URL = settings.database_url
 
 class Base(DeclarativeBase):
     pass
