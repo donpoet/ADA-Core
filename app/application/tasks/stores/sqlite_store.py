@@ -1,9 +1,17 @@
 from .store import TaskStore
 
 from app.tasks.enums import TaskType
-from app.tasks.models import Task
+from app.tasks.models import Task, TaskExecution, TaskResult
+from app.application.artifacts.stores.artifact_store import ArtifactStore
 
-from app.database.schema import TaskModel, TaskMessageModel
+from app.application.tasks.component_registry import TaskComponentRegistry
+
+from app.database.schema import (
+    TaskModel,
+    TaskMessageModel,
+    TaskExecutionModel,
+    TaskResultModel
+)
 
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -13,8 +21,9 @@ from app.database.utils import ensure_utc
 
 class SQLiteTaskStore(TaskStore):
 
-    def __init__(self, engine):
+    def __init__(self, engine, task_component_registry: TaskComponentRegistry):
         self._engine = engine
+        self._task_component_registry = task_component_registry
 
     def create_task(self, task_type: TaskType, conversation_id: UUID) -> Task:
         task = Task(
@@ -150,12 +159,118 @@ class SQLiteTaskStore(TaskStore):
 
         
     def get_task_execution(self, task_execution_id: UUID) -> TaskExecution:
-        pass
+        with Session(self._engine) as session:
+            task_execution_model = session.get(
+                TaskExecutionModel,
+                str(task_execution_id),
+            )
+
+            if task_execution_model is None:
+                raise ValueError(
+                    f"TaskExecution {task_execution_id} not found"
+                )
+
+            task_model = task_execution_model.task
+
+            task_execution_factory = self._task_component_registry.get(task_model.type).execution_factory
+
+            return task_execution_factory.build(
+                id=UUID(task_execution_model.id),
+                task_id=UUID(task_execution_model.task_id),
+                status=task_execution_model.status,
+                context=task_execution_model.context,
+                started_at=(
+                    ensure_utc(task_execution_model.started_at)
+                    if task_execution_model.started_at is not None
+                    else None
+                ),
+                finished_at=(
+                    ensure_utc(task_execution_model.finished_at)
+                    if task_execution_model.finished_at is not None
+                    else None
+                ),
+            )
 
     
     def save_task_execution(self, task_execution:TaskExecution) -> None:
-        pass
+        with Session(self._engine) as session:
+            task_execution_model = session.get(
+                TaskExecutionModel,
+                str(task_execution.id),
+            )
+
+            if task_execution_model is None:
+                task_execution_model = TaskExecutionModel(
+                    id=str(task_execution.id),
+                    task_id=str(task_execution.task_id),
+                    status=task_execution.status,
+                    context=task_execution.context.model_dump(),
+                    started_at=(
+                        ensure_utc(task_execution.started_at)
+                        if task_execution.started_at is not None
+                        else None
+                    ),
+                    finished_at=(
+                        ensure_utc(task_execution.finished_at)
+                        if task_execution.finished_at is not None
+                        else None
+                    ),
+                )
+                session.add(task_execution_model)
+            
+            task_execution_model.task_id = str(task_execution.task_id)
+            task_execution_model.status = task_execution.status
+            task_execution_model.context = task_execution.context.model_dump()
+            task_execution_model.started_at =(
+                        ensure_utc(task_execution.started_at)
+                        if task_execution.started_at is not None
+                        else None
+                    )
+            task_execution_model.finished_at =(
+                        ensure_utc(task_execution.finished_at)
+                        if task_execution.finished_at is not None
+                        else None
+                    )
+            
+            session.commit()
+
+
 
     
     def list_task_executions(self, task_id: UUID) -> list[TaskExecution]:
-        pass
+        task_executions: list[TaskExecution] = []
+        with Session(self._engine) as session:
+            task_model = session.get(
+                TaskModel,
+                str(task_id),
+            )
+
+            if task_model is None:
+                raise ValueError(
+                    f"Task {task_id} not found"
+                )
+
+            task_execution_factory = self._task_component_registry.get(task_model.type).execution_factory
+            
+            for task_execution_model in task_model.executions:
+                task_executions.append(
+                    task_execution_factory.build(
+                        id=UUID(task_execution_model.id),
+                        task_id=UUID(task_execution_model.task_id),
+                        status=task_execution_model.status,
+                        context=task_execution_model.context,
+                        started_at=(
+                            ensure_utc(task_execution_model.started_at)
+                            if task_execution_model.started_at is not None
+                            else None
+                        ),
+                        finished_at=(
+                            ensure_utc(task_execution_model.finished_at)
+                            if task_execution_model.finished_at is not None
+                            else None
+                        ),
+                    )
+                )
+        
+        return task_executions
+            

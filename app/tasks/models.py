@@ -78,6 +78,7 @@ class TaskExecution(ABC, BaseModel, Generic[I]):
                 f"Cannot start execution with status: {self.status}"
             )
         self.status = TaskExecutionStatus.RUNNING
+        self.started_at = datetime.now(UTC)
 
     def complete(self) -> None:
         if (self.status != TaskExecutionStatus.RUNNING):

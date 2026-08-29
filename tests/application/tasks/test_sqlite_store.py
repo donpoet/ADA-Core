@@ -3,18 +3,25 @@ from sqlalchemy.orm import Session
 from app.application.tasks.stores.sqlite_store import SQLiteTaskStore
 from app.application.conversations.stores.sqlite_store import SQLiteConversationStore
 from app.conversation.models import Message, MessageRole
-from app.database.schema import TaskModel
+from app.database.schema import TaskModel, TaskExecutionModel
 
-from app.tasks.models import Task
-from app.tasks.enums import TaskType, TaskStatus
+from app.tasks.models import Task, TaskExecution
+from app.tasks.enums import TaskType, TaskStatus, TaskExecutionStatus
+
+from app.application.artifacts.stores.artifact_store import ArtifactStore
+
+from app.ollama.models import OllamaContextOutput
 
 from datetime import datetime, UTC
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 import pytest
+from unittest.mock import AsyncMock
+
+from app.dependencies import task_component_registry
 
 def test_create_task(db_engine):
-    store = SQLiteTaskStore(db_engine)
+    store = SQLiteTaskStore(db_engine, task_component_registry)
 
     conversation_id = uuid4()
 
@@ -65,7 +72,7 @@ def test_get_task(db_engine):
             str(task_id)
         ) is not None
         
-    store = SQLiteTaskStore(db_engine)
+    store = SQLiteTaskStore(db_engine, task_component_registry)
 
     result = store.get_task(task_id)
 
@@ -80,7 +87,7 @@ def test_get_task(db_engine):
 
 def test_save_task_with_new_source_messages(db_engine):
     conversation_store = SQLiteConversationStore(db_engine)
-    task_store = SQLiteTaskStore(db_engine)
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
 
     conversation = conversation_store.create()
     message1 = Message(
@@ -108,7 +115,7 @@ def test_save_task_with_new_source_messages(db_engine):
 
 def test_save_task_with_altered_source_messages(db_engine):
     conversation_store = SQLiteConversationStore(db_engine)
-    task_store = SQLiteTaskStore(db_engine)
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
 
     conversation = conversation_store.create()
     message1 = Message(
@@ -152,7 +159,7 @@ def test_save_task_with_altered_source_messages(db_engine):
     assert message1.id not in task.source_message_ids
 
 def test_list_tasks(db_engine):
-    store = SQLiteTaskStore(db_engine)
+    store = SQLiteTaskStore(db_engine, task_component_registry)
 
     conversation_id = uuid4()
 
@@ -169,7 +176,209 @@ def test_list_tasks(db_engine):
     assert set(result_ids) == set(expected_task_ids)
 
 def test_raise_value_error_for_unknown_task(db_engine):
-    store = SQLiteTaskStore(db_engine)
+    store = SQLiteTaskStore(db_engine, task_component_registry)
 
     with pytest.raises(ValueError):
         store.get_task(uuid4())
+
+def test_get_task_execution(db_engine):
+    conversation_store = SQLiteConversationStore(db_engine)
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
+
+    conversation = conversation_store.create()
+
+    task = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+
+    with Session(db_engine) as session:
+        task_execution_model = TaskExecutionModel(
+            id=str(uuid4()),
+            task_id=str(task.id),
+            status=TaskExecutionStatus.PENDING,
+            context={
+                "messages":[
+                    {
+                        "role":"user",
+                        "content":"Hallo Ada!"
+                    }
+                ]
+            },
+            started_at=None,
+            finished_at=None,
+        )
+        session.add(task_execution_model)
+        session.commit()
+
+        get_result = task_store.get_task_execution(UUID(task_execution_model.id))
+
+        assert isinstance(get_result, TaskExecution)
+        assert get_result.id == UUID(task_execution_model.id)
+        assert get_result.task_id == UUID(task_execution_model.task_id)
+        assert get_result.status is task_execution_model.status
+        assert get_result.context.model_dump() == task_execution_model.context
+        assert get_result.started_at is None
+        assert get_result.finished_at is None
+
+def test_save_task_execution(db_engine):
+    execution_facotry = task_component_registry.get(TaskType.WEAK_LLM).execution_factory
+
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
+    conversation_store = SQLiteConversationStore(db_engine)
+    conversation = conversation_store.create()
+
+    task = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+
+    task_execution = execution_facotry.create(
+        task.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_store.save_task_execution(task_execution)
+
+    get_result = task_store.get_task_execution(task_execution.id)
+
+    assert isinstance(get_result, TaskExecution)
+    assert get_result.id == task_execution.id
+    assert get_result.task_id == task_execution.task_id
+    assert get_result.status is task_execution.status
+    assert get_result.context == task_execution.context
+    assert get_result.started_at is None
+    assert get_result.finished_at is None
+
+def test_save_modified_task_execution(db_engine):
+    execution_facotry = task_component_registry.get(TaskType.WEAK_LLM).execution_factory
+
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
+    conversation_store = SQLiteConversationStore(db_engine)
+    conversation = conversation_store.create()
+
+    task = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+
+    task_execution = execution_facotry.create(
+        task.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_store.save_task_execution(task_execution)
+
+    task_execution.start()
+    task_execution.complete()
+
+    task_store.save_task_execution(task_execution)
+
+    get_result = task_store.get_task_execution(task_execution.id)
+
+    assert isinstance(get_result, TaskExecution)
+    assert get_result.id == task_execution.id
+    assert get_result.task_id == task_execution.task_id
+    assert get_result.status is task_execution.status
+    assert get_result.context == task_execution.context
+    assert get_result.started_at is not None
+    assert get_result.finished_at is not None
+
+def test_list_task_executions(db_engine):
+    execution_facotry = task_component_registry.get(TaskType.WEAK_LLM).execution_factory
+
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
+    conversation_store = SQLiteConversationStore(db_engine)
+    conversation = conversation_store.create()
+
+    task1 = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+    task2 = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+
+    task_execution1 = execution_facotry.create(
+        task1.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_execution2 = execution_facotry.create(
+        task1.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_execution3 = execution_facotry.create(
+        task1.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_execution4 = execution_facotry.create(
+        task2.id,
+        OllamaContextOutput(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Hallo Ada!"
+                }
+            ]
+        )
+    )
+
+    task_store.save_task_execution(task_execution1)
+    task_store.save_task_execution(task_execution2)
+    task_store.save_task_execution(task_execution3)
+    task_store.save_task_execution(task_execution4)
+
+    expected_ids1 = [task_execution1.id, task_execution2.id, task_execution3.id]
+    expected_ids2 = [task_execution4.id]
+
+    results1 = task_store.list_task_executions(task1.id)
+
+    result_ids1 = [result.id for result in results1]
+
+    results2 = task_store.list_task_executions(task2.id)
+
+    result_ids2 = [result.id for result in results2]
+
+    assert set(result_ids1) == set(expected_ids1)
+    assert set(result_ids2) == set(expected_ids2)
+
+def test_raise_value_error_for_unknown_task_execution(db_engine):
+    store = SQLiteTaskStore(db_engine, task_component_registry)
+
+    with pytest.raises(ValueError):
+        store.get_task_execution(uuid4())
+
+def test_get_empty_list_for_task_without_executions(db_engine):
+    task_store = SQLiteTaskStore(db_engine, task_component_registry)
+    conversation_store = SQLiteConversationStore(db_engine)
+    conversation = conversation_store.create()
+
+    task = task_store.create_task(TaskType.WEAK_LLM, conversation.id)
+
+    results = task_store.list_task_executions(task.id)
+
+    assert results == []
