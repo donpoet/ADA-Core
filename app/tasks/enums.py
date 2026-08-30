@@ -4,6 +4,13 @@ class TaskType(str, Enum):
     WEAK_LLM = "weak_llm"
     HOME_AUTOMATION = "home_automation"
 
+    @property
+    def desctiption(self) -> str:
+        descriptions = {
+            WEAK_LLM: "Handles simple language model tasks and questions.",
+            HOME_AUTOMATION: "Controls and interacts with smart home devices"
+        }
+
 class TaskStatus(str, Enum):
     COMPLETED = "completed"
     CANCELLED = "cancelled"

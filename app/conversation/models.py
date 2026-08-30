@@ -18,3 +18,10 @@ class Conversation(BaseModel):
 
     def add_message(self, message: Message):
         self.messages.append(message)
+
+    def remove_system_message(self, message: Message):
+        if message.role != MessageRole.SYSTEM:
+            raise ValueError(
+                f"Message {message.id} is not of Role 'System'"
+            )
+        self.messages.remove(message)

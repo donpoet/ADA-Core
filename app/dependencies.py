@@ -15,6 +15,7 @@ from app.application.tasks.stores.sqlite_store import SQLiteTaskStore
 from app.application.tasks.task_results.stores.sqlite_store import SQLiteTaskResultStore
 from app.application.tasks.component_registry import TaskComponentRegistry
 from app.application.tasks.ochestrator import TaskOrchestrator
+from app.application.tasks.task_factory import TaskFactory
 
 ######################## General Purpose Components ###################################
 
@@ -23,6 +24,7 @@ app_settings = Settings()
 db_engine = create_engine(app_settings.database_url)
 prompt_provider = PromptProvider(Path("app/prompts"))
 task_component_registry = TaskComponentRegistry()
+task
 
 ####### Stores:
 artifact_store = SQLiteArtifactStore(db_engine)
@@ -37,11 +39,17 @@ ollama_chat_context_source_factory = OllamaChatContextSourceFactory()
 ollama_model_provider = OllamaModelProvider(ollama_client, app_settings.default_model)
 
 ####### Services:
+task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
+task_factory = TaskFactory(task_store)
+intent_recognizer = none #TODO
 chat_service = ChatService( 
     context_builder=ollama_context_builder,
     conversation_store=conversation_store,
     model_provider=ollama_model_provider,
-    context_source_factory=ollama_chat_context_source_factory)  
+    context_source_factory=ollama_chat_context_source_factory,
+    intent_recognizer=intent_recognizer,
+    task_factory=task_factory,
+    task_orchestrator=task_orchestrator)  
 memory_service = MemoryService(conversation_store)
 
 ####### API Interfaces:
@@ -53,8 +61,6 @@ def get_chat_service() -> ChatService:
 
 def get_memory_service() -> MemoryService:
     return memory_service
-
-
 
 
 ######################## Task Registry Components #####################################
@@ -80,6 +86,3 @@ task_component_registry.register(
         context_input_provider=ChatContextInputProvider(conversation_store),
     )
 )
-
-#---------- Task Lifecycle ------------#
-task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
