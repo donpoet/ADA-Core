@@ -1,6 +1,7 @@
 from .component_registry import TaskComponentRegistry
 from .stores.store import TaskStore
 from app.tasks.models import Task, TaskExecution
+from app.tasks.enums import TaskExecutionStatus, TaskStatus
 from app.application.tasks.task_results.stores.store import TaskResultStore
 
 class TaskOrchestrator:
@@ -21,11 +22,15 @@ class TaskOrchestrator:
             context
         )
 
-        self._task_store.save_task(task)
+        self._task_store.save_task_execution(execution)
 
         result = await execution.execute()
         self._task_result_store.save_task_result(result)
 
         self._task_store.save_task_execution(execution)
+
+        if execution.status == TaskExecutionStatus.COMPLETED:
+            task.status = TaskStatus.COMPLETED
+            self._task_store.save_task(task)
 
         return execution
