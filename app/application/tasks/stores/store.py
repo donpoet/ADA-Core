@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from app.tasks.models import Task, TaskExecution
-from app.tasks.enums import TaskType
+from app.tasks.enums import TaskType, TaskStatus
 from app.context.models import ContextOutput
 from uuid import UUID
+from datetime import datetime
 
 class TaskStore(ABC):
 
@@ -20,6 +21,20 @@ class TaskStore(ABC):
 
     @abstractmethod
     def list_tasks(self) -> list[Task]:
+        pass
+
+    @abstractmethod
+    def filter_tasks(
+        self,
+        *,
+        conversation_id: UUID | None = None,
+        task_type: TaskType | None = None,
+        status: TaskStatus | None = None,
+        created_before: datetime | None = None,
+        created_after: datetime | None = None,
+        completed_before: datetime | None = None,
+        completed_after: datetime | None = None
+    ) -> list[Task]:
         pass
 
     @abstractmethod

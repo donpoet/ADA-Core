@@ -1,9 +1,11 @@
 from uuid import uuid4, UUID
 
 from app.tasks.models import Task, TaskExecution
-from app.tasks.enums import TaskType
+from app.tasks.enums import TaskType, TaskStatus
 from .store import TaskStore
 from app.context.models import ContextOutput
+
+from datetime import datetime
 
 class InMemoryTaskStore(TaskStore):
 
@@ -28,7 +30,72 @@ class InMemoryTaskStore(TaskStore):
     def list_tasks(self) -> list[Task]:
         return list(self._tasks.values())
 
-    
+    def filter_tasks(
+        self,
+        *,
+        conversation_id: UUID | None = None,
+        task_type: TaskType | None = None,
+        status: TaskStatus | None = None,
+        created_before: datetime | None = None,
+        created_after: datetime | None = None,
+        completed_before: datetime | None = None,
+        completed_after: datetime | None = None,
+        ) -> list[Task]:
+        
+        tasks = self._tasks.values()
+
+        if conversation_id is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.conversation_id == conversation_id:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if task_type is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.type == task_type:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if status is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.status == status:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if created_before is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.created_at < created_before:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if created_after is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.created_at >= created_after:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if completed_before is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.completed_at is not None and task.completed_at < completed_before:
+                    filtered_list.append(task)
+            tasks = filtered_list
+
+        if completed_after is not None:
+            filtered_list = []
+            for task in tasks:
+                if task.completed_at is not None and task.completed_at >= completed_after:
+                    filtered_list.append(task)
+            tasks = filtered_list
+        
+        return list(tasks)
+
+
     def get_task_execution(self, task_execution_id: UUID) -> TaskExecution:
         return self._task_executions.get(task_execution_id)
 

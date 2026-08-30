@@ -2,6 +2,7 @@ from enum import Enum
 
 class TaskType(str, Enum):
     WEAK_LLM = "weak_llm"
+    HOME_AUTOMATION = "home_automation"
 
 class TaskStatus(str, Enum):
     COMPLETED = "completed"

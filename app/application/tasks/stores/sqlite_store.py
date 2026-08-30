@@ -137,6 +137,81 @@ class SQLiteTaskStore(TaskStore):
                 )
         return tasks
 
+    def filter_tasks(
+        self,
+        *,
+        conversation_id: UUID | None = None,
+        task_type: TaskType | None = None,
+        status: TaskStatus | None = None,
+        created_before: datetime | None = None,
+        created_after: datetime | None = None,
+        completed_before: datetime | None = None,
+        completed_after: datetime | None = None,
+        ) -> list[Task]:
+        tasks: list[Task] = []
+        with Session(self._engine) as session:
+            query = session.query(TaskModel)
+
+            if conversation_id is not None:
+                query = query.where(
+                    TaskModel.conversation_id == str(conversation_id)
+                )
+
+            if task_type is not None:
+                query = query.where(
+                    TaskModel.type == task_type
+                )
+
+            if status is not None:
+                query = query.where(
+                    TaskModel.status == status
+                )
+
+            if created_before is not None:
+                query = query.where(
+                    TaskModel.created_at < created_before
+                )
+
+            if created_after is not None:
+                query = query.where(
+                    TaskModel.created_at >= created_after
+                )
+            
+            if completed_before is not None:
+                query = query.where(
+                    TaskModel.completed_at is not None and TaskModel.completed_at < completed_before
+                )
+
+            if completed_after is not None:
+                query = query.where(
+                    TaskModel.completed_at is not None and TaskModel.completed_at >= completed_after
+                )
+
+            task_models = query.all()
+
+            for task_model in task_models:
+
+                tasks.append(
+                    Task(
+                        id=UUID(task_model.id),
+                        conversation_id=UUID(task_model.conversation_id),
+                        type=task_model.type,
+                        status=task_model.status,
+                        source_message_ids=[
+                            UUID(task_message.message_id)
+                            for task_message in task_model.source_messages
+                        ],
+                        created_at=ensure_utc(task_model.created_at),
+                        completed_at=(
+                            ensure_utc(task_model.completed_at) 
+                            if task_model.completed_at is not None
+                            else None
+                        ),
+                    )
+                )
+        return tasks
+
+
 
     def resolve_source_messages(self, task: Task, session: Session) -> list[TaskMessageModel]:
         source_messages: list[TaskMessageModel] = []
