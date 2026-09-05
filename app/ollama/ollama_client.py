@@ -36,12 +36,16 @@ class OllamaClient:
     async def chat(
             self,
             model: str, 
-            messages: list[dict[str, str]]
+            messages: list[dict[str, str]],
+            thinking: bool | None = None,
+            options: dict | None = None,
     ) -> OllamaChatResponse:
         payload = {
             "model": model,
             "messages": messages,
-            "stream": False
+            "stream": False,
+            "think": thinking,
+            "options" : options if options else {}
         }
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
@@ -53,6 +57,34 @@ class OllamaClient:
         response.raise_for_status()
         data = response.json()
 
+        return OllamaChatResponse(**data)
+
+    async def structured(
+            self,
+            model: str, 
+            messages: list[dict[str, str]],
+            output_type: type[T],
+            thinking: bool | None = None,
+            options: dict | None = None,
+    ) -> OllamaChatResponse:
+        payload = {
+            "model": model,
+            "messages": messages,
+            "stream": False,
+            "think": thinking,
+            "format": output_type.model_json_schema(),
+            "options" : options if options else {}
+        }
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.post(
+                f"{self.base_url}/api/chat",
+                json=payload,
+            )
+
+        response.raise_for_status()
+        data = response.json()
+ 
         return OllamaChatResponse(**data)
         
 

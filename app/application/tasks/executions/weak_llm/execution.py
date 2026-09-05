@@ -43,7 +43,7 @@ class WeakLLMTaskExecution(TaskExecution[OllamaContextOutput]):
         self.start()
 
         try:
-            response = self._model_provider.chat(self.context)
+            response = await self._model_provider.chat(self.context)
 
             artifact = self._artifact_store.create_artifact(
                 artifact_type=ArtifactType.LLM_RESPONSE,

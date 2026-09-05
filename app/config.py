@@ -3,7 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     ollama_url: str = "http://ada:11434"
     ollama_timeout: int = 300
-    default_model: str = "qwen3:4b"
+    default_model: str = "qwen3:1.7b"
+    intent_model: str = "qwen3:4b"
     database_url: str = "sqlite:///data/adacore.db"
 
     model_config = SettingsConfigDict(

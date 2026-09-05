@@ -10,6 +10,9 @@ from unittest.mock import Mock
 import pytest
 
 class TestIntentRecognizer(IntentRecognizer):
+    def __init__(self, model_provider: ModelProvider):
+        self._model_provider = model_provider
+
     async def recognize(self, conversation: Conversation, message: Message) -> Intent:
         return Intent(
             intent_action=IntentAction.CREATE_TASK,

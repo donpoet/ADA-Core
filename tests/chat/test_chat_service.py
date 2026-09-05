@@ -67,6 +67,7 @@ async def test_chat_add_user_and_assistant_messages():
         intent_recognizer=intent_recognizer,
         task_factory=task_factory,
         task_orchestrator=task_orchestrator,
+        prompt_provider=prompt_provider,
     )
 
     conversation_store.save(conversation)
@@ -116,6 +117,7 @@ async def test_conversation_keeps_context():
         intent_recognizer=intent_recognizer,
         task_factory=task_factory,
         task_orchestrator=task_orchestrator,
+        prompt_provider=prompt_provider,
     )
 
     conversation_store.save(conversation)
@@ -174,6 +176,7 @@ async def test_conversation_keeps_context_with_sqlite_store(db_engine):
         intent_recognizer=intent_recognizer,
         task_factory=task_factory,
         task_orchestrator=task_orchestrator,
+        prompt_provider=prompt_provider,
     )
 
     conversation_store.save(conversation)
@@ -215,6 +218,7 @@ async def test_chat_creates_and_starts_task():
     conversation_store = Mock()
     conversation_store.get.return_value = conversation
 
+    prompt_provider = PromptProvider(Path("tests/prompts"))
     intent_recognizer = AsyncMock()
     intent_recognizer.recognize.return_value = Intent(
         intent_action=IntentAction.CREATE_TASK,
@@ -246,6 +250,7 @@ async def test_chat_creates_and_starts_task():
         intent_recognizer=intent_recognizer,
         task_factory=task_factory,
         task_orchestrator=task_orchestrator,
+        prompt_provider=prompt_provider,
     )
 
     response = await service.chat(
@@ -311,6 +316,7 @@ async def test_chat_does_not_wait_for_task_execution():
 
     context_source_factory = Mock()
     context_builder = Mock()
+    prompt_provider = PromptProvider(Path("tests/prompts"))
 
     service = ChatService(
         model_provider=model_provider,
@@ -320,6 +326,7 @@ async def test_chat_does_not_wait_for_task_execution():
         intent_recognizer=intent_recognizer,
         task_factory=task_factory,
         task_orchestrator=task_orchestrator,
+        prompt_provider=prompt_provider,
     )
 
     response_task = asyncio.create_task(

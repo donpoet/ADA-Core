@@ -14,6 +14,7 @@ from app.application.intent.recognizer import IntentRecognizer
 from app.intent.enums import IntentAction
 from app.application.tasks.ochestrator import TaskOrchestrator
 from app.application.tasks.task_factory import TaskFactory
+from app.prompts.prompt_provider import PromptProvider
 
 import asyncio
 
@@ -26,7 +27,8 @@ class ChatService:
             conversation_store: ConversationStore,
             intent_recognizer: IntentRecognizer,
             task_factory: TaskFactory,
-            task_orchestrator: TaskOrchestrator):
+            task_orchestrator: TaskOrchestrator,
+            prompt_provider: PromptProvider):
         self.model_provider = model_provider
         self.context_source_factory = context_source_factory
         self.context_builder = context_builder
@@ -34,6 +36,7 @@ class ChatService:
         self.intent_recognizer = intent_recognizer
         self.task_factory = task_factory
         self.task_orchestrator = task_orchestrator
+        self.prompt_provider = prompt_provider
 
     async def chat(
             self, 
@@ -56,7 +59,7 @@ class ChatService:
 
         conversation.add_message(user_message)
 
-        intent = await self.intent_recognizer.recognize(conversation, user_message)
+        intent = await self.intent_recognizer.recognize(conversation=conversation, message=user_message)
 
         if intent.intent_action == IntentAction.CHAT:       
 

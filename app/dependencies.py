@@ -16,6 +16,9 @@ from app.application.tasks.task_results.stores.sqlite_store import SQLiteTaskRes
 from app.application.tasks.component_registry import TaskComponentRegistry
 from app.application.tasks.ochestrator import TaskOrchestrator
 from app.application.tasks.task_factory import TaskFactory
+from app.application.intent.llm_recognizer import LLMIntentRecognizer
+from app.application.intent.llm_intent_context_source_factory import LLMIntentRecognizerContextSourceFactory
+from app.application.intent.llm__intent_context_builder import LLMIntentContextBuilder
 
 ######################## General Purpose Components ###################################
 
@@ -24,7 +27,6 @@ app_settings = Settings()
 db_engine = create_engine(app_settings.database_url)
 prompt_provider = PromptProvider(Path("app/prompts"))
 task_component_registry = TaskComponentRegistry()
-task
 
 ####### Stores:
 artifact_store = SQLiteArtifactStore(db_engine)
@@ -38,10 +40,18 @@ ollama_context_builder = OllamaContextBuilder(prompt_provider)
 ollama_chat_context_source_factory = OllamaChatContextSourceFactory()
 ollama_model_provider = OllamaModelProvider(ollama_client, app_settings.default_model)
 
+####### Intent Recognition:
+weak_llm_model_provider = OllamaModelProvider(ollama_client, app_settings.intent_model)
+intent_context_source_factory = LLMIntentRecognizerContextSourceFactory()
+intent_context_builder = LLMIntentContextBuilder(prompt_provider)
+
 ####### Services:
 task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
 task_factory = TaskFactory(task_store)
-intent_recognizer = none #TODO
+intent_recognizer = LLMIntentRecognizer(
+    weak_llm_model_provider,
+    intent_context_source_factory,
+    intent_context_builder)
 chat_service = ChatService( 
     context_builder=ollama_context_builder,
     conversation_store=conversation_store,
@@ -49,7 +59,8 @@ chat_service = ChatService(
     context_source_factory=ollama_chat_context_source_factory,
     intent_recognizer=intent_recognizer,
     task_factory=task_factory,
-    task_orchestrator=task_orchestrator)  
+    task_orchestrator=task_orchestrator,
+    prompt_provider=prompt_provider,)  
 memory_service = MemoryService(conversation_store)
 
 ####### API Interfaces:
@@ -74,8 +85,6 @@ from app.application.tasks.executions.weak_llm.execution_factory import WeakLLMT
 from app.chat.context_input_provider import ChatContextInputProvider
 
 #---------- Weak LLM Task ------------#
-
-weak_llm_model_provider = OllamaModelProvider(ollama_client, "qwen3:1.7b")
 
 task_component_registry.register(
     TaskType.WEAK_LLM,
