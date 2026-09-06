@@ -5,19 +5,20 @@ import json
 
 class OllamaModelProvider(ModelProvider[OllamaContextOutput, OllamaModelOutput]):
 
-    def __init__(self, ollama_client: OllamaClient, model: str):
+    def __init__(self, ollama_client: OllamaClient, model: str, thinking: bool | None = None, options: dict | None = None):
         self.ollama_client = ollama_client
         self.model = model
-    
-    async def chat(self, input: OllamaContextOutput, thinking: bool | None = None, options: dict | None = None) -> OllamaModelOutput:
-        response = await self.ollama_client.chat(self.model, input.messages)
+        super().__init__(thinking=thinking, options=options)
+
+    async def chat(self, input: OllamaContextOutput) -> OllamaModelOutput:
+        response = await self.ollama_client.chat(self.model, input.messages, thinking=self.thinking, options=self.options)
 
         return OllamaModelOutput(
             content=response.message.content
         )
 
-    async def structured(self, input: OllamaContextOutput, output_type: type[T], thinking: bool | None = None, options: dict | None = None) -> T:
-        response = await self.ollama_client.structured(model=self.model, messages=input.messages, output_type=output_type, thinking=thinking, options=options)
+    async def structured(self, input: OllamaContextOutput, output_type: type[T]) -> T:
+        response = await self.ollama_client.structured(model=self.model, messages=input.messages, output_type=output_type, thinking=self.thinking, options=self.options)
 
         data = json.loads(response.message.content)
 

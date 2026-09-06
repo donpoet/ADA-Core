@@ -9,7 +9,6 @@ import pytest
 from unittest.mock import AsyncMock, Mock
 from app.ollama.models import OllamaModelOutput
 from app.ollama.context_builder import OllamaContextBuilder
-from app.ollama.model_provider import OllamaModelProvider
 from uuid import uuid4
 from app.application.conversations.stores.memory_store import InMemoryConversationStore
 from app.application.conversations.stores.sqlite_store import SQLiteConversationStore

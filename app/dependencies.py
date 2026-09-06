@@ -38,10 +38,10 @@ task_result_store = SQLiteTaskResultStore(db_engine)
 ollama_client = OllamaClient(base_url=app_settings.ollama_url, timeout=app_settings.ollama_timeout)
 ollama_context_builder = OllamaContextBuilder(prompt_provider)
 ollama_chat_context_source_factory = OllamaChatContextSourceFactory()
-ollama_model_provider = OllamaModelProvider(ollama_client, app_settings.default_model)
+ollama_model_provider = OllamaModelProvider(ollama_client, app_settings.default_model, thinking=app_settings.default_model_thinking, options=app_settings.default_model_options)
 
 ####### Intent Recognition:
-weak_llm_model_provider = OllamaModelProvider(ollama_client, app_settings.intent_model)
+weak_llm_model_provider = OllamaModelProvider(ollama_client, app_settings.intent_model, thinking=app_settings.intent_model_thinking, options=app_settings.intent_model_options)
 intent_context_source_factory = LLMIntentRecognizerContextSourceFactory()
 intent_context_builder = LLMIntentContextBuilder(prompt_provider)
 
