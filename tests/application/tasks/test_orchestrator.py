@@ -11,6 +11,8 @@ from app.context.context_source_factory import ContextSourceFactory
 from app.context.context_input_provider import ContextInputProvider
 from app.context.context import ContextBuilder
 from app.application.tasks.execution_factory import TaskExecutionFactory
+from app.events.event_publisher import EventPublisher
+from app.events.models import TaskExecutionCompletedEvent
 
 from uuid import uuid4
 from unittest.mock import AsyncMock
@@ -76,7 +78,9 @@ async def test_excute_successful_execution():
         )
     )
 
-    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
+    event_publisher = AsyncMock(EventPublisher)
+
+    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store, event_publisher)
 
     execution = await task_orchestrator.execute(task)
 
@@ -93,6 +97,15 @@ async def test_excute_successful_execution():
     )
 
     assert isinstance(stored_execution, TaskExecution)
+
+    published_event = event_publisher.publish_event.await_args.args[0]
+    
+    assert isinstance(published_event, TaskExecutionCompletedEvent)
+    assert published_event.task_id == task.id
+    assert published_event.task_execution_id == execution.id
+    assert published_event.task_result_id == task_result.id
+
+    
 
 @pytest.mark.asyncio
 async def test_excute_failed_execution():
@@ -133,7 +146,9 @@ async def test_excute_failed_execution():
         )
     )
 
-    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
+    event_publisher = AsyncMock(EventPublisher)
+
+    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store, event_publisher)
 
     execution = await task_orchestrator.execute(task)
 
@@ -144,3 +159,10 @@ async def test_excute_failed_execution():
 
     assert task_result is not None
     assert task_result.status == TaskResultStatus.FAILED
+    
+    published_event = event_publisher.publish_event.await_args.args[0]
+
+    assert isinstance(published_event, TaskExecutionCompletedEvent)
+    assert published_event.task_id == task.id
+    assert published_event.task_execution_id == execution.id
+    assert published_event.task_result_id == task_result.id

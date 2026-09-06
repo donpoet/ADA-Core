@@ -87,16 +87,7 @@ class ChatService:
                 self.task_orchestrator.execute(task)
             )
 
-            system_message = Message(
-                role=MessageRole.SYSTEM,
-                content=f'''\n\n SYSTEM INFORMATION: \n\n
-                    Das System hat einen Task Intent erkannt und entsprechend eine Aufgabe gestartet. 
-                    Antworte dem Benutzer auf deine Weise, dass du im Hintergrund eine entsprechende Aufgabe gestartet hast.
-                    Erledige die Aufgabe nicht selbst. Im Hintergrund kümmert sich der Ada Core darum.\n\n
-                    
-                    Task Type: {intent.task_type} \n
-                    Intent Action: {intent.intent_action}'''
-            )
+            system_message = Message(content=self.get_task_started_message(intent.task_type, intent.intent_action), role=MessageRole.SYSTEM)
 
             try:
 
@@ -124,3 +115,7 @@ class ChatService:
             conversation_id=conversation.id,
             content=output.content,
         )
+
+    def get_task_started_message(self, task_type: str, intent_action: str) -> str:
+        message = self.prompt_provider.get("task_started_message").format(task_type=task_type, intent_action=intent_action)
+        return message

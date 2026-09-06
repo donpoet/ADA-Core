@@ -19,6 +19,8 @@ from app.tasks.enums import TaskExecutionStatus, TaskResultStatus
 from app.artifacts.enums import ArtifactType, ArtifactOperation
 from unittest.mock import AsyncMock
 from app.application.tasks.task_results.stores.memory_store import InMemoryTaskResultStore
+from app.events.models import TaskExecutionCompletedEvent
+from app.events.event_publisher import EventPublisher
 
 @pytest.mark.asyncio
 async def test_execute_weak_llm_task():
@@ -45,7 +47,9 @@ async def test_execute_weak_llm_task():
         context_input_provider=ChatContextInputProvider(conversation_store)
     ))
 
-    orchestrator = TaskOrchestrator(task_store, registry, task_result_store)
+    event_publisher = AsyncMock(EventPublisher)
+
+    orchestrator = TaskOrchestrator(task_store, registry, task_result_store, event_publisher)
 
     task = task_store.create_task(
         TaskType.WEAK_LLM,
@@ -79,3 +83,10 @@ async def test_execute_weak_llm_task():
     assert artifact.artifact_type == ArtifactType.LLM_RESPONSE
     assert artifact.operation == ArtifactOperation.CREATE
     assert artifact.data["content"] == "Hallo!"
+
+    published_event = event_publisher.publish_event.await_args.args[0]
+
+    assert isinstance(published_event, TaskExecutionCompletedEvent)
+    assert published_event.task_id == task.id
+    assert published_event.task_execution_id == execution.id
+    assert published_event.task_result_id == task_result.id

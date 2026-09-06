@@ -12,11 +12,17 @@ from app.context.context_source_factory import ContextSourceFactory
 from app.context.context_input_provider import ContextInputProvider
 from app.context.context import ContextBuilder
 from app.application.tasks.execution_factory import TaskExecutionFactory
+from app.events.models import TaskExecutionCompletedEvent
+from app.events.event_dispatcher import EventDispatcher
+from app.application.returns.return_decision_service import ReturnDecisionService
+from app.application.returns.event_handlers.task_execution_completed_event_handler import TaskExecutionCompletedEventHandler
+from app.returns.enums import ReturnAction
 
 from uuid import uuid4
-from unittest.mock import Mock
+from unittest.mock import Mock, AsyncMock
 
 import pytest
+import asyncio
 
 from pydantic import BaseModel
 
@@ -74,10 +80,31 @@ async def test_excute_successful_execution(db_engine):
             context_input_provider=context_input_provider
         )
     )
+    
+    event_dispatcher = EventDispatcher()
 
-    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
+    decsion_completed = asyncio.Event()
+
+    return_decision_service = AsyncMock(ReturnDecisionService)
+
+    async def decide(event):
+        decsion_completed.set()
+        return ReturnAction.RESPOND_NOW
+
+    return_decision_service.decide.side_effect = decide
+
+    event_handler = TaskExecutionCompletedEventHandler(return_decision_service)
+
+    event_dispatcher.register(TaskExecutionCompletedEvent, event_handler)
+
+    task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store, event_dispatcher)
 
     execution = await task_orchestrator.execute(task)
+
+    await asyncio.wait_for(
+        decsion_completed.wait(),
+        timeout=1.0
+    )
 
     task_execution_factory.build.return_value = SuccessfulTestTaskExection(
         id=execution.id,
@@ -104,3 +131,12 @@ async def test_excute_successful_execution(db_engine):
 
     stored_task = task_store.get_task(task.id)
     assert stored_task.status == TaskStatus.COMPLETED
+
+    return_decision_service.decide.assert_awaited_once()
+
+    published_event = return_decision_service.decide.await_args.args[0]
+
+    assert isinstance(published_event, TaskExecutionCompletedEvent)
+    assert published_event.task_id == task.id
+    assert published_event.task_execution_id == execution.id
+    assert published_event.task_result_id == task_result.id

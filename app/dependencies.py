@@ -19,6 +19,12 @@ from app.application.tasks.task_factory import TaskFactory
 from app.application.intent.llm_recognizer import LLMIntentRecognizer
 from app.application.intent.llm_intent_context_source_factory import LLMIntentRecognizerContextSourceFactory
 from app.application.intent.llm__intent_context_builder import LLMIntentContextBuilder
+from app.events.event_dispatcher import EventDispatcher
+from app.application.returns.event_handlers.task_execution_completed_event_handler import TaskExecutionCompletedEventHandler
+from app.application.returns.return_decision_service import ReturnDecisionService
+from app.application.returns.context.ollama_return_context_builder import OllamaReturnContextBuilder
+from app.application.returns.context.task_execution_completed_return_context_source_factory import TaskExecutionCompletedReturnContextSourceFactory
+from app.events.models import TaskExecutionCompletedEvent
 
 ######################## General Purpose Components ###################################
 
@@ -45,8 +51,33 @@ weak_llm_model_provider = OllamaModelProvider(ollama_client, app_settings.intent
 intent_context_source_factory = LLMIntentRecognizerContextSourceFactory()
 intent_context_builder = LLMIntentContextBuilder(prompt_provider)
 
+####### Event Bus
+
+#----- Bus Components
+event_dispatcher = EventDispatcher()
+
+#----- Task Execution Completed Event
+task_execution_completed_return_context_source_factory = TaskExecutionCompletedReturnContextSourceFactory(
+    task_store=task_store,
+    task_result_store=task_result_store,
+    artifact_store=artifact_store,
+    conversation_store=conversation_store,
+)
+ollama_return_context_builder = OllamaReturnContextBuilder(prompt_provider)
+return_decision_model_provider = OllamaModelProvider(ollama_client, app_settings.return_decision_model, thinking=app_settings.return_decision_model_thinking, options=app_settings.return_decision_model_options)
+return_decision_service = ReturnDecisionService(
+    context_source_factory=task_execution_completed_return_context_source_factory,
+    context_builder=ollama_return_context_builder,
+    model_provider=return_decision_model_provider,
+)
+task_execution_completed_event_handler = TaskExecutionCompletedEventHandler(return_decision_service)
+
+#----- Event Registration
+event_dispatcher.register(TaskExecutionCompletedEvent, task_execution_completed_event_handler)
+
+
 ####### Services:
-task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store)
+task_orchestrator = TaskOrchestrator(task_store, task_component_registry, task_result_store, event_dispatcher)
 task_factory = TaskFactory(task_store)
 intent_recognizer = LLMIntentRecognizer(
     weak_llm_model_provider,

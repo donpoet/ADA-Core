@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     default_model_options: dict = {"temperature": 0.5}    
     intent_model_thinking: bool = False
     intent_model_options: dict = {"temperature": 0}
+    return_decision_model: str = "qwen3:4b"
+    return_decision_model_thinking: bool = True
+    return_decision_model_options: dict = {"temperature": 0}
     model_config = SettingsConfigDict(
         env_file = ".env",
         env_file_encoding = "utf-8",
